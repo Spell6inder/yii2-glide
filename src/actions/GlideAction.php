@@ -31,6 +31,7 @@ class GlideAction extends Action
      */
     public function run($path)
     {
+        unset($_GET['path']);
         $server = $this->getServer();
 
         if (!$server->sourceFileExists($path)) {
