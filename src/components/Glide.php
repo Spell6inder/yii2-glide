@@ -64,6 +64,15 @@ class Glide extends Component
      */
     public $cachePathPrefix;
     /**
+     * @var bool
+     */
+    public $groupCacheInFolders = true;
+    /**
+     * Whether to cache with file extensions.
+     * @var bool
+     */
+    public $cacheWithFileExtensions = false;
+    /**
      * @var string
      */
     public $watermarksPath;
@@ -88,10 +97,6 @@ class Glide extends Component
      * @var string
      */
     public $urlManager = 'urlManager';
-    /**
-     * @var bool
-     */
-    public $groupCacheInFolders = true;
     /**
      * @var ResponseFactoryInterface|null
      */
@@ -184,6 +189,7 @@ class Glide extends Component
             $server->setSourcePathPrefix($this->sourcePathPrefix);
             $server->setCachePathPrefix($this->cachePathPrefix);
             $server->setGroupCacheInFolders($this->groupCacheInFolders);
+            $server->setCacheWithFileExtensions($this->cacheWithFileExtensions);
             $server->setDefaults($this->defaults);
             $server->setPresets($this->presets);
             $server->setBaseUrl($this->baseUrl);
@@ -304,8 +310,11 @@ class Glide extends Component
      */
     public function createSignedUrl(array $params, $scheme = false)
     {
-        $route = ArrayHelper::getValue($params, 0);
+        $path = ArrayHelper::remove($params, 'path');
+        $route = ArrayHelper::remove($params, 0);
+        $params['path'] = $this->getServer()->getCachePath($path, $params);
         if ($this->getUrlManager()->enablePrettyUrl) {
+            $params[0]=$route;
             $showScriptName = $this->getUrlManager()->showScriptName;
             if ($showScriptName) {
                 $this->getUrlManager()->showScriptName = false;
@@ -317,7 +326,6 @@ class Glide extends Component
             $urlParams = (array) (new QueryParser)->parse($uri->getQuery());
         } else {
             $path = '/index.php';
-            $route = array_shift($params);
             $urlParams = $params;
             $urlParams['r'] = $route;
         }
